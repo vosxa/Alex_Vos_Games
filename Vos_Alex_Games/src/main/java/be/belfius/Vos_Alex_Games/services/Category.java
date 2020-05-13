@@ -6,7 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class GameCategory {
+public class Category {
 
 	public static String selection;
 
@@ -27,6 +27,7 @@ public class GameCategory {
 				addCategory();
 				break;
 			case "5":
+				deleteCategory();
 				break;
 			case "X":
 				break;
@@ -50,23 +51,23 @@ public class GameCategory {
 		return new MyScanner().receiveString("");
 	}
 
-	public static Integer askCategoryById(String question) {
+	public static Integer askInt(String question) {
 		return new MyScanner().receiveInt(question);
 	}
 
-	public static String askCategoryByName(String question) {
+	public static String askString(String question) {
 		return new MyScanner().receiveString(question);
 	}
 
 	public static void addCategory() {
-		String CategoryName = askCategoryByName("Please enter a CategoryName");
+		String CategoryName = askString("Please enter a CategoryName");
 		Integer Count = 0;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			PreparedStatement statement;
-			statement = connection.prepareStatement(
-					"select count(*) as count from Category where category_name = '" + CategoryName + "'");
+			statement = connection.prepareStatement("select count(*) as count from Category where category_name = ?");
+			statement.setString(1, CategoryName);
 			ResultSet resultset = statement.executeQuery();
 			while (resultset.next()) {
 				Count = resultset.getInt("COUNT");
@@ -78,6 +79,7 @@ public class GameCategory {
 				statement = connection.prepareStatement("insert into Category (category_name) values (lower(?))");
 				statement.setString(1, CategoryName);
 				statement.executeUpdate();
+				System.out.println("Category with name (" + CategoryName + ") successfully added");
 			}
 
 		} catch (SQLException | ClassNotFoundException e) {
@@ -86,32 +88,38 @@ public class GameCategory {
 	}
 
 	public static void deleteCategory() {
-		String CategoryName = askCategoryByName("Please enter a CategoryName");
+		String CategoryName = askString("Please enter the CategoryName that you want to delete");
+		String YesNo = "N";
 		Integer Count = 0;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			PreparedStatement statement;
-			statement = connection.prepareStatement(
-					"select count(*) as count from Category where category_name = '" + CategoryName + "'");
+			statement = connection.prepareStatement("select count(*) as count from Category where category_name = ?");
+			statement.setString(1, CategoryName);
 			ResultSet resultset = statement.executeQuery();
 			while (resultset.next()) {
-				Count = resultset.getInt("COUNT");
+				Count = resultset.getInt("count");
 			}
-
-			if (Count > 0)
-				System.out.println("Category with name (" + CategoryName + ") already exists");
+			if (Count == 0)
+				System.out.println("Category with name (" + CategoryName + ") does not exist");
 			else {
-				statement = connection.prepareStatement("insert into Category (category_name) values (lower(?))");
-				statement.setString(1, CategoryName);
-				statement.executeUpdate();
+				YesNo = askString("Are you sure you want to delete Category <" + CategoryName + "> (Y/N)");
+				if (YesNo.equals("Y")) {
+					statement = connection.prepareStatement("delete from Category where category_name = lower(?)");
+					statement.setString(1, CategoryName);
+					statement.executeUpdate();
+					System.out.println("Category with name (" + CategoryName + ") successfully deleted");
+				}
 			}
 
 		} catch (SQLException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
+
 	public static void listCategories() {
+		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -119,21 +127,26 @@ public class GameCategory {
 			statement = connection.prepareStatement("select Id, category_name from Category");
 			ResultSet resultSet = statement.executeQuery();
 
-			System.out.println("Id  Category Name");
-			System.out.println("-----------------");
-			if (resultSet == null)
-				System.out.println("Category-table is empty");
-			else
-				while (resultSet.next()) {
-					System.out.println(resultSet.getInt("Id") + " " + resultSet.getString("category_name"));
+			while (resultSet.next()) {
+				if (SwTitle == false) {
+					System.out.println("Id  Category Name");
+					System.out.println("-----------------");
+					SwTitle = true;
 				}
-		} catch (SQLException | ClassNotFoundException e) {
+				System.out.println(resultSet.getInt("Id") + " " + resultSet.getString("category_name"));
+			}
+			if (SwTitle == false)
+				System.out.println("Category-table is empty");
+		} catch (SQLException |
+
+				ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public static void listCategoryById() {
-		Integer Id = askCategoryById("Please enter an Id");
+		Integer Id = askInt("Please enter an Id");
+		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -142,39 +155,49 @@ public class GameCategory {
 			statement.setInt(1, Id);
 			ResultSet resultSet = statement.executeQuery();
 
-			System.out.println("Id  Category Name");
-			System.out.println("-----------------");
-			if (resultSet == null)
-				System.out.println("Category-id(" + Id + ") does not exist");
-			else
-				while (resultSet.next()) {
-					System.out.println(resultSet.getInt("Id") + " " + resultSet.getString("category_name"));
+			while (resultSet.next()) {
+				if (SwTitle == false) {
+					System.out.println("Id  Category Name");
+					System.out.println("-----------------");
+					SwTitle = true;
 				}
-		} catch (SQLException | ClassNotFoundException e) {
+				System.out.println(resultSet.getInt("Id") + " " + resultSet.getString("category_name"));
+			}
+			if (SwTitle == false)
+				System.out.println("Category-id(" + Id + ") does not exist");
+
+		} catch (SQLException |
+
+				ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public static void listCategoryByName() {
-		String CategoryName = askCategoryByName("Please enter a (part of a) CategoryName");
+		String CategoryName = askString("Please enter a (part of a) CategoryName");
+		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			PreparedStatement statement;
-			statement = connection.prepareStatement(
-					"select Id, category_name from Category where category_name like ?");
-			statement.setString(1,"'%"+ CategoryName + "%'");
+			statement = connection
+					.prepareStatement("select Id, category_name from Category where category_name like ?");
+			statement.setString(1, "%" + CategoryName + "%");
 			ResultSet resultSet = statement.executeQuery();
 
-			System.out.println("Id  Category Name");
-			System.out.println("-----------------");
-			if (resultSet == null)
-				System.out.println("Category with name (" + CategoryName + ") does not exist");
-			else
-				while (resultSet.next()) {
-					System.out.println(resultSet.getInt("Id") + " " + resultSet.getString("category_name"));
+			while (resultSet.next()) {
+				if (SwTitle == false) {
+					System.out.println("Id  Category Name");
+					System.out.println("-----------------");
+					SwTitle = true;
 				}
-		} catch (SQLException | ClassNotFoundException e) {
+				System.out.println(resultSet.getInt("Id") + " " + resultSet.getString("category_name"));
+			}
+			if (SwTitle == false)
+				System.out.println("Category with name (" + CategoryName + ") does not exist");
+		} catch (SQLException |
+
+				ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}

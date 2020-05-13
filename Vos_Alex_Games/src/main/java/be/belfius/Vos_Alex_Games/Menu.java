@@ -12,9 +12,10 @@ public class Menu {
 
 			switch (menuChoice) {
 			case "1":
-				be.belfius.Vos_Alex_Games.services.GameCategory.categoryMenu();
+				be.belfius.Vos_Alex_Games.services.Category.categoryMenu();
 				break;
 			case "2":
+				be.belfius.Vos_Alex_Games.services.Game.gameMenu();
 				break;
 			case "3":
 				break;
@@ -43,8 +44,8 @@ public class Menu {
 
 	public String showmenu() {
 		System.out.println();
-		System.out.println("1: Game Category");
-		System.out.println("2: ");
+		System.out.println("1: Categories");
+		System.out.println("2: Games");
 //		System.out.println("3: ");
 //		System.out.println("4: ");
 //		System.out.println("5: ");
