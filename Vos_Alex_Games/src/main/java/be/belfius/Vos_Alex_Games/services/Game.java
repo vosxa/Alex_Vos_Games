@@ -12,7 +12,7 @@ public class Game {
 
 	public static void gameMenu() {
 		do {
-			selection = menuGameGame().toUpperCase();
+			selection = menuGame().toUpperCase();
 			switch (selection) {
 			case "1":
 				listGames();
@@ -40,7 +40,7 @@ public class Game {
 
 	}
 
-	public static String menuGameGame() {
+	public static String menuGame() {
 		System.out.println();
 		System.out.println("1: Show all Games");
 		System.out.println("2: Show Game by ID");
@@ -48,15 +48,19 @@ public class Game {
 		System.out.println("4: Add Game");
 		System.out.println("5: Delete Game");
 		System.out.println("X: Return to Main Menu");
-		return new MyScanner().receiveString("");
+		return new MyScanner().receiveString("", 2);
 	}
 
-	public static Integer askInt(String question) {
-		return new MyScanner().receiveInt(question);
+	public static Integer askInt(String question, Integer maxValue) {
+		return new MyScanner().receiveInt(question, maxValue);
 	}
 
-	public static String askString(String question) {
-		return new MyScanner().receiveString(question);
+	public static Double askDouble(String question, Double maxValue) {
+		return new MyScanner().receiveDouble(question, maxValue);
+	}
+
+	public static String askString(String question, Integer maxLength) {
+		return new MyScanner().receiveString(question, maxLength);
 	}
 
 	public static void printTitle() {
@@ -87,7 +91,7 @@ public class Game {
 	}
 
 	public static void addGame() {
-		String GameName = askString("Please enter a GameName");
+		String GameName = askString("Please enter a GameName", 50);
 		Integer Count = 0;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
@@ -96,15 +100,73 @@ public class Game {
 			statement = connection.prepareStatement("select count(*) as count from Game where Game_name = ?");
 			statement.setString(1, GameName);
 			ResultSet resultset = statement.executeQuery();
-			while (resultset.next()) {
-				Count = resultset.getInt("COUNT");
-			}
+			resultset.next();
+			Count = resultset.getInt("COUNT");
 
 			if (Count > 0)
 				System.out.println("Game with name (" + GameName + ") already exists");
 			else {
-				statement = connection.prepareStatement("insert into Game (Game_name) values (lower(?))");
+				String editor = askString("Please enter an Editor (50 characters)", 50);
+				String author = askString("Please enter an Author (40 characters)", 40);
+				Integer yearEdition = askInt("Please enter a Year Edition (4 digit", 9999);
+				String age = askString("Please enter an Age (20 characters", 20);
+				Integer minPlayers = askInt("Please enter Min Players (8 digits", 999999999);
+				Integer maxPlayers = askInt("Please enter Max Players (8 digits", 999999999);
+
+				// Validation CategoryId
+				Boolean validCategoryId = false;
+				Integer categoryId = 0;
+				while (validCategoryId == false) {
+					categoryId = askInt("Please enter a valid Category Id (11 digits", 999999999);
+					statement = connection.prepareStatement("select count(*) as count from Category where id = ?");
+					statement.setInt(1, categoryId);
+					resultset = statement.executeQuery();
+					resultset.next();
+					Count = resultset.getInt("count");
+					if (Count == 0)
+						System.out.println("Category with id (" + categoryId + ") does not exist");
+					else
+						validCategoryId = true;
+				}
+				// End Validation CategoryId
+
+				String playDuration = askString("Please enter play Duration (20 characters", 20);
+
+				// Validation difficultyId
+				Boolean validDifficultyId = false;
+				Integer difficultyId = 0;
+				while (validDifficultyId = false) {
+					difficultyId = askInt("Please enter a valid Category Id (11 digits", 999999999);
+					statement = connection.prepareStatement("select count(*) as count from Difficulty where id = ?");
+					statement.setInt(1, difficultyId);
+					resultset = statement.executeQuery();
+					resultset.next();
+					Count = resultset.getInt("count");
+					if (Count == 0)
+						System.out.println("Difficulty with id (" + categoryId + ") does not exist");
+					else
+						validDifficultyId = true;
+				}
+				// End Validation difficultyId
+				
+				Double price = askDouble("Please enter a valid Price (999,99)", 999d);
+				String image = askString("Please enter an Image (25 characters)", 25);
+								
+				statement = connection.prepareStatement(
+						"insert into Game (game_name,editor,author,year_edition,age,min_players,max_players,"
+								+ "category_id,play_duration,difficulty_id,price,image) values (?,?,?,?,?,?,?,?,?,?,?,?)");
 				statement.setString(1, GameName);
+				statement.setString(2, editor);
+				statement.setString(3, author);
+				statement.setInt(4, yearEdition);
+				statement.setString(5, age);
+				statement.setInt(6, minPlayers);
+				statement.setInt(7, maxPlayers);
+				statement.setInt(8, categoryId);
+				statement.setString(9, playDuration);
+				statement.setInt(10, difficultyId);
+				statement.setDouble(11, price);
+				statement.setString(12, image);
 				statement.executeUpdate();
 				System.out.println("Game with name (" + GameName + ") successfully added");
 			}
@@ -115,7 +177,7 @@ public class Game {
 	}
 
 	public static void deleteGame() {
-		String GameName = askString("Please enter the GameName that you want to delete");
+		String GameName = askString("Please enter the GameName that you want to delete", 50);
 		Integer Count = 0;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
@@ -124,13 +186,12 @@ public class Game {
 			statement = connection.prepareStatement("select count(*) as count from Game where Game_name = ?");
 			statement.setString(1, GameName);
 			ResultSet resultset = statement.executeQuery();
-			while (resultset.next()) {
-				Count = resultset.getInt("count");
-			}
+			resultset.next();
+			Count = resultset.getInt("count");
 			if (Count == 0)
 				System.out.println("Game with name (" + GameName + ") does not exist");
 			else {
-				if (askString("Are you sure you want to delete Game <" + GameName + "> (Y/N)").equals("Y")) {
+				if (askString("Are you sure you want to delete Game <" + GameName + "> (Y/N)", 1).equals("Y")) {
 					statement = connection.prepareStatement("delete from Game where Game_name = lower(?)");
 					statement.setString(1, GameName);
 					statement.executeUpdate();
@@ -175,7 +236,7 @@ public class Game {
 	}
 
 	public static void listGameById() {
-		Integer Id = askInt("Please enter an Id");
+		Integer Id = askInt("Please enter an Id", 999999999);
 		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
@@ -209,7 +270,7 @@ public class Game {
 	}
 
 	public static void listGameByName() {
-		String GameName = askString("Please enter a (part of a) GameName");
+		String GameName = askString("Please enter a (part of a) GameName", 50);
 		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");

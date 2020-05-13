@@ -12,7 +12,7 @@ public class Category {
 
 	public static void categoryMenu() {
 		do {
-			selection = menuGameCategory().toUpperCase();
+			selection = menuCategory().toUpperCase();
 			switch (selection) {
 			case "1":
 				listCategories();
@@ -40,7 +40,7 @@ public class Category {
 
 	}
 
-	public static String menuGameCategory() {
+	public static String menuCategory() {
 		System.out.println();
 		System.out.println("1: Show all Categories");
 		System.out.println("2: Show Category by ID");
@@ -48,19 +48,19 @@ public class Category {
 		System.out.println("4: Add Category");
 		System.out.println("5: Delete Category");
 		System.out.println("X: Return to Main Menu");
-		return new MyScanner().receiveString("");
+		return new MyScanner().receiveString("",2);
 	}
 
-	public static Integer askInt(String question) {
-		return new MyScanner().receiveInt(question);
+	public static Integer askInt(String question, Integer maxValue) {
+		return new MyScanner().receiveInt(question, maxValue);
 	}
 
-	public static String askString(String question) {
-		return new MyScanner().receiveString(question);
+	public static String askString(String question, Integer maxLength) {
+		return new MyScanner().receiveString(question, maxLength);
 	}
 
 	public static void addCategory() {
-		String CategoryName = askString("Please enter a CategoryName");
+		String CategoryName = askString("Please enter a CategoryName", 30);
 		Integer Count = 0;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
@@ -88,8 +88,7 @@ public class Category {
 	}
 
 	public static void deleteCategory() {
-		String CategoryName = askString("Please enter the CategoryName that you want to delete");
-		String YesNo = "N";
+		String CategoryName = askString("Please enter the CategoryName that you want to delete", 30);
 		Integer Count = 0;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
@@ -104,8 +103,7 @@ public class Category {
 			if (Count == 0)
 				System.out.println("Category with name (" + CategoryName + ") does not exist");
 			else {
-				YesNo = askString("Are you sure you want to delete Category <" + CategoryName + "> (Y/N)");
-				if (YesNo.equals("Y")) {
+				if (askString("Are you sure you want to delete Category <" + CategoryName + "> (Y/N)", 1).equals("Y")) {
 					statement = connection.prepareStatement("delete from Category where category_name = lower(?)");
 					statement.setString(1, CategoryName);
 					statement.executeUpdate();
@@ -145,7 +143,7 @@ public class Category {
 	}
 
 	public static void listCategoryById() {
-		Integer Id = askInt("Please enter an Id");
+		Integer Id = askInt("Please enter an Id",99999999);
 		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
@@ -174,7 +172,7 @@ public class Category {
 	}
 
 	public static void listCategoryByName() {
-		String CategoryName = askString("Please enter a (part of a) CategoryName");
+		String CategoryName = askString("Please enter a (part of a) CategoryName",30);
 		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
