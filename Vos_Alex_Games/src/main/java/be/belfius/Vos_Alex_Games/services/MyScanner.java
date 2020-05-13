@@ -9,8 +9,7 @@ public class MyScanner {
 	public int receiveInt(String iQuestion, Integer maxValue) {
 		boolean valid = false;
 		Integer iReturn = 0;
-		if (iQuestion != "")
-			System.out.println(iQuestion);
+		System.out.println(iQuestion + "==> Max Value=" + maxValue);
 		while (!valid) {
 			if (scanner.hasNextInt()) {
 				iReturn = scanner.nextInt();
@@ -29,8 +28,7 @@ public class MyScanner {
 	public double receiveDouble(String iQuestion, Double maxValue) {
 		boolean valid = false;
 		double iReturn = 0;
-		if (iQuestion != "")
-			System.out.println(iQuestion);
+		System.out.println(iQuestion + "==> Max Value=" + maxValue);
 		while (!valid) {
 			if (scanner.hasNextDouble()) {
 				iReturn = scanner.nextDouble();
@@ -50,8 +48,7 @@ public class MyScanner {
 	public String receiveString(String iQuestion, Integer maxLength) {
 		boolean valid = false;
 		String iReturn = "";
-		if (iQuestion != "")
-			System.out.println(iQuestion);
+		System.out.println(iQuestion + "==> Max Length=" + maxLength);
 		while (!valid) {
 			iReturn = scanner.next();
 			if (iReturn.length() > maxLength)

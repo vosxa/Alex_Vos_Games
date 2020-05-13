@@ -18,6 +18,7 @@ public class Menu {
 				be.belfius.Vos_Alex_Games.services.Game.gameMenu();
 				break;
 			case "3":
+				be.belfius.Vos_Alex_Games.services.Borrower.borrowerMenu();
 				break;
 			case "4":
 				break;
@@ -46,7 +47,7 @@ public class Menu {
 		System.out.println();
 		System.out.println("1: Categories");
 		System.out.println("2: Games");
-//		System.out.println("3: ");
+		System.out.println("3: Borrowers");
 //		System.out.println("4: ");
 //		System.out.println("5: ");
 //		System.out.println("6: ");
@@ -54,6 +55,6 @@ public class Menu {
 //		System.out.println("8: ");
 //		System.out.println("9: ");
 		System.out.println("X: Exit Applic");
-		return new MyScanner().receiveString("",2);
+		return new MyScanner().receiveString("Please enter your selection",1);
 	}
 }

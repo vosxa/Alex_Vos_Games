@@ -48,7 +48,7 @@ public class Category {
 		System.out.println("4: Add Category");
 		System.out.println("5: Delete Category");
 		System.out.println("X: Return to Main Menu");
-		return new MyScanner().receiveString("",2);
+		return new MyScanner().receiveString("Please enter your selection",1);
 	}
 
 	public static Integer askInt(String question, Integer maxValue) {
@@ -88,26 +88,26 @@ public class Category {
 	}
 
 	public static void deleteCategory() {
-		String CategoryName = askString("Please enter the CategoryName that you want to delete", 30);
+		Integer CategoryId = askInt("Please enter the CategoryName that you want to delete", 999999999);
 		Integer Count = 0;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			PreparedStatement statement;
-			statement = connection.prepareStatement("select count(*) as count from Category where category_name = ?");
-			statement.setString(1, CategoryName);
+			statement = connection.prepareStatement("select count(*) as count from Category where id = ?");
+			statement.setInt(1, CategoryId);
 			ResultSet resultset = statement.executeQuery();
 			while (resultset.next()) {
 				Count = resultset.getInt("count");
 			}
 			if (Count == 0)
-				System.out.println("Category with name (" + CategoryName + ") does not exist");
+				System.out.println("CategoryId (" + CategoryId + ") does not exist");
 			else {
-				if (askString("Are you sure you want to delete Category <" + CategoryName + "> (Y/N)", 1).equals("Y")) {
+				if (askString("Are you sure you want to delete Category <" + CategoryId + "> (Y/N)", 1).equals("Y")) {
 					statement = connection.prepareStatement("delete from Category where category_name = lower(?)");
-					statement.setString(1, CategoryName);
+					statement.setInt(1, CategoryId);
 					statement.executeUpdate();
-					System.out.println("Category with name (" + CategoryName + ") successfully deleted");
+					System.out.println("CategoryId (" + CategoryId + ") successfully deleted");
 				}
 			}
 

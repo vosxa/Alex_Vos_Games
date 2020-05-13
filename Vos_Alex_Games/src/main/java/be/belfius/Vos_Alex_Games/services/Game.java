@@ -48,7 +48,7 @@ public class Game {
 		System.out.println("4: Add Game");
 		System.out.println("5: Delete Game");
 		System.out.println("X: Return to Main Menu");
-		return new MyScanner().receiveString("", 2);
+		return new MyScanner().receiveString("Please enter your selection", 1);
 	}
 
 	public static Integer askInt(String question, Integer maxValue) {
@@ -106,18 +106,18 @@ public class Game {
 			if (Count > 0)
 				System.out.println("Game with name (" + GameName + ") already exists");
 			else {
-				String editor = askString("Please enter an Editor (50 characters)", 50);
-				String author = askString("Please enter an Author (40 characters)", 40);
-				Integer yearEdition = askInt("Please enter a Year Edition (4 digit", 9999);
-				String age = askString("Please enter an Age (20 characters", 20);
-				Integer minPlayers = askInt("Please enter Min Players (8 digits", 999999999);
-				Integer maxPlayers = askInt("Please enter Max Players (8 digits", 999999999);
+				String editor = askString("Please enter an Editor", 50);
+				String author = askString("Please enter an Author", 40);
+				Integer yearEdition = askInt("Please enter a Year Edition", 9999);
+				String age = askString("Please enter an Age", 20);
+				Integer minPlayers = askInt("Please enter Min Players", 999999999);
+				Integer maxPlayers = askInt("Please enter Max Players", 999999999);
 
 				// Validation CategoryId
 				Boolean validCategoryId = false;
 				Integer categoryId = 0;
 				while (validCategoryId == false) {
-					categoryId = askInt("Please enter a valid Category Id (11 digits", 999999999);
+					categoryId = askInt("Please enter a valid Category Id", 999999999);
 					statement = connection.prepareStatement("select count(*) as count from Category where id = ?");
 					statement.setInt(1, categoryId);
 					resultset = statement.executeQuery();
@@ -130,13 +130,13 @@ public class Game {
 				}
 				// End Validation CategoryId
 
-				String playDuration = askString("Please enter play Duration (20 characters", 20);
+				String playDuration = askString("Please enter play Duration", 20);
 
 				// Validation difficultyId
 				Boolean validDifficultyId = false;
 				Integer difficultyId = 0;
 				while (validDifficultyId = false) {
-					difficultyId = askInt("Please enter a valid Category Id (11 digits", 999999999);
+					difficultyId = askInt("Please enter a valid Difficulty Id", 999999999);
 					statement = connection.prepareStatement("select count(*) as count from Difficulty where id = ?");
 					statement.setInt(1, difficultyId);
 					resultset = statement.executeQuery();
@@ -149,8 +149,8 @@ public class Game {
 				}
 				// End Validation difficultyId
 				
-				Double price = askDouble("Please enter a valid Price (999,99)", 999d);
-				String image = askString("Please enter an Image (25 characters)", 25);
+				Double price = askDouble("Please enter a valid Price", 999d);
+				String image = askString("Please enter an Image", 25);
 								
 				statement = connection.prepareStatement(
 						"insert into Game (game_name,editor,author,year_edition,age,min_players,max_players,"
@@ -177,25 +177,25 @@ public class Game {
 	}
 
 	public static void deleteGame() {
-		String GameName = askString("Please enter the GameName that you want to delete", 50);
+		Integer GameId = askInt("Please enter the GameId that you want to delete", 999999999);
 		Integer Count = 0;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			PreparedStatement statement;
-			statement = connection.prepareStatement("select count(*) as count from Game where Game_name = ?");
-			statement.setString(1, GameName);
+			statement = connection.prepareStatement("select count(*) as count from Game where id = ?");
+			statement.setInt(1, GameId);
 			ResultSet resultset = statement.executeQuery();
 			resultset.next();
 			Count = resultset.getInt("count");
 			if (Count == 0)
-				System.out.println("Game with name (" + GameName + ") does not exist");
+				System.out.println("GameId (" + GameId + ") does not exist");
 			else {
-				if (askString("Are you sure you want to delete Game <" + GameName + "> (Y/N)", 1).equals("Y")) {
+				if (askString("Are you sure you want to delete GameId <" + GameId + "> (Y/N)", 1).equals("Y")) {
 					statement = connection.prepareStatement("delete from Game where Game_name = lower(?)");
-					statement.setString(1, GameName);
+					statement.setInt(1, GameId);
 					statement.executeUpdate();
-					System.out.println("Game with name (" + GameName + ") successfully deleted");
+					System.out.println("GameId (" + GameId + ") successfully deleted");
 				}
 			}
 
