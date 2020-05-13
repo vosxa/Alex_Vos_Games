@@ -15,18 +15,21 @@ public class Game {
 			selection = menuGame().toUpperCase();
 			switch (selection) {
 			case "1":
-				listGames();
+				listGames("ID");
 				break;
 			case "2":
-				listGameById();
+				listGames("NAME");
 				break;
 			case "3":
-				listGameByName();
+				listGameById();
 				break;
 			case "4":
-				addGame();
+				listGameByName();
 				break;
 			case "5":
+				addGame();
+				break;
+			case "6":
 				deleteGame();
 				break;
 			case "X":
@@ -42,7 +45,8 @@ public class Game {
 
 	public static String menuGame() {
 		System.out.println();
-		System.out.println("1: Show all Games");
+		System.out.println("1: Show all Games ordered by Id");
+		System.out.println("2: Show all Games ordered by Name");
 		System.out.println("2: Show Game by ID");
 		System.out.println("3: Show Game by Name");
 		System.out.println("4: Add Game");
@@ -204,15 +208,20 @@ public class Game {
 		}
 	}
 
-	public static void listGames() {
+	public static void listGames(String orderBy) {
 		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			PreparedStatement statement;
+			if (orderBy.equals("ID"))
 			statement = connection.prepareStatement(
 					"select id, game_name, editor,author,year_edition,age,min_players,max_players,category_id,play_duration,difficulty_id,"
-							+ "price,image from Game");
+							+ "price,image from Game order by id");
+			else
+				statement = connection.prepareStatement(
+						"select id, game_name, editor,author,year_edition,age,min_players,max_players,category_id,play_duration,difficulty_id,"
+								+ "price,image from Game order by game_name");
 			ResultSet resultSet = statement.executeQuery();
 
 			while (resultSet.next()) {

@@ -15,18 +15,21 @@ public class Borrower {
 			selection = menuBorrower().toUpperCase();
 			switch (selection) {
 			case "1":
-				listBorrowers();
+				listBorrowers("ID");
 				break;
 			case "2":
-				listBorrowerById();
+				listBorrowers("NAME");
 				break;
 			case "3":
-				listBorrowerByName();
+				listBorrowerById();
 				break;
 			case "4":
-				addBorrower();
+				listBorrowerByName();
 				break;
 			case "5":
+				addBorrower();
+				break;
+			case "6":
 				deleteBorrower();
 				break;
 			case "X":
@@ -62,11 +65,12 @@ public class Borrower {
 
 	public static String menuBorrower() {
 		System.out.println();
-		System.out.println("1: Show all Borrowers");
-		System.out.println("2: Show Borrower by ID");
-		System.out.println("3: Show Borrower by Name");
-		System.out.println("4: Add Borrower");
-		System.out.println("5: Delete Borrower");
+		System.out.println("1: Show all Borrowers ordered by ID");
+		System.out.println("2: Show all Borrowers ordered by Name");
+		System.out.println("3: Show Borrower by ID");
+		System.out.println("4: Show Borrower by Name");
+		System.out.println("5: Add Borrower");
+		System.out.println("6: Delete Borrower");
 		System.out.println("X: Return to Main Menu");
 		return new MyScanner().receiveString("Please enter your selection", 1);
 	}
@@ -156,14 +160,18 @@ public class Borrower {
 		}
 	}
 
-	public static void listBorrowers() {
+	public static void listBorrowers(String orderBy) {
 		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			PreparedStatement statement;
-			statement = connection.prepareStatement(
-					"select id,borrower_name,street,house_number,bus_number,postcode,city,telephone,email from Borrower");
+			if (orderBy.contentEquals("ID"))
+				statement = connection.prepareStatement(
+						"select id,borrower_name,street,house_number,bus_number,postcode,city,telephone,email from Borrower order by id");
+			else
+				statement = connection.prepareStatement(
+						"select id,borrower_name,street,house_number,bus_number,postcode,city,telephone,email from Borrower order by borrower_name");
 			ResultSet resultSet = statement.executeQuery();
 
 			while (resultSet.next()) {

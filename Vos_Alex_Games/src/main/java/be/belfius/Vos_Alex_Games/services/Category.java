@@ -15,18 +15,21 @@ public class Category {
 			selection = menuCategory().toUpperCase();
 			switch (selection) {
 			case "1":
-				listCategories();
+				listCategories("ID");
 				break;
 			case "2":
-				listCategoryById();
+				listCategories("NAME");
 				break;
 			case "3":
-				listCategoryByName();
+				listCategoryById();
 				break;
 			case "4":
-				addCategory();
+				listCategoryByName();
 				break;
 			case "5":
+				addCategory();
+				break;
+			case "6":
 				deleteCategory();
 				break;
 			case "X":
@@ -42,11 +45,12 @@ public class Category {
 
 	public static String menuCategory() {
 		System.out.println();
-		System.out.println("1: Show all Categories");
-		System.out.println("2: Show Category by ID");
-		System.out.println("3: Show Category by Name");
-		System.out.println("4: Add Category");
-		System.out.println("5: Delete Category");
+		System.out.println("1: Show all Categories ordered by Id");
+		System.out.println("2: Show all Categories ordered by Name");
+		System.out.println("3: Show Category by ID");
+		System.out.println("4: Show Category by Name");
+		System.out.println("5: Add Category");
+		System.out.println("6: Delete Category");
 		System.out.println("X: Return to Main Menu");
 		return new MyScanner().receiveString("Please enter your selection",1);
 	}
@@ -116,13 +120,16 @@ public class Category {
 		}
 	}
 
-	public static void listCategories() {
+	public static void listCategories(String orderBy) {
 		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			PreparedStatement statement;
-			statement = connection.prepareStatement("select Id, category_name from Category");
+			if (orderBy.contentEquals("ID"))
+			statement = connection.prepareStatement("select Id, category_name from Category order by Id");
+			else
+			statement = connection.prepareStatement("select Id, category_name from Category order by category_name");
 			ResultSet resultSet = statement.executeQuery();
 
 			while (resultSet.next()) {
