@@ -24,6 +24,7 @@ public class Menu {
 				be.belfius.Vos_Alex_Games.services.Borrow.borrowMenu();
 				break;
 			case "5":
+				be.belfius.Vos_Alex_Games.services.Difficulty.difficultyMenu();
 				break;
 			case "6":
 				break;
@@ -50,7 +51,7 @@ public class Menu {
 		System.out.println("2: Games");
 		System.out.println("3: Borrowers");
 		System.out.println("4: Borrows");
-//		System.out.println("5: ");
+		System.out.println("5: Difficulty");
 //		System.out.println("6: ");
 //		System.out.println("7: ");
 //		System.out.println("8: ");

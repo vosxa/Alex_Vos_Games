@@ -8,23 +8,48 @@ import java.sql.SQLException;
 
 public class Borrower {
 
-	public static String selection;
+	public static Integer selId;
+	public static String selection, selName, swIdName;
+
+	public static String menuBorrower() {
+		System.out.println();
+		System.out.println("1: Show all Borrowers ordered by ID");
+		System.out.println("2: Show all Borrowers ordered by Name");
+		System.out.println("3: Show Borrower by ID");
+		System.out.println("4: Show Borrower by Name");
+		System.out.println("5: Add Borrower");
+		System.out.println("6: Delete Borrower");
+		System.out.println("X: Return to Main Menu");
+		return new MyScanner().receiveString("Please enter your selection", 1);
+	}
 
 	public static void borrowerMenu() {
 		do {
 			selection = menuBorrower().toUpperCase();
 			switch (selection) {
 			case "1":
-				listBorrowers("ID");
+				swIdName = "ID";
+				selName = "";
+				selId = 0;
+				listBorrowers(swIdName, selName, selId);
 				break;
 			case "2":
-				listBorrowers("NAME");
+				swIdName = "NAME";
+				selName = "*";
+				selId = 0;
+				listBorrowers(swIdName, selName, selId);
 				break;
 			case "3":
-				listBorrowerById();
+				swIdName = "ID";
+				selName = "";
+				selId = askInt("Please enter an Id", 99999999);
+				listBorrowers(swIdName, selName, selId);
 				break;
 			case "4":
-				listBorrowerByName();
+				swIdName = "NAME";
+				selName = askString("Please enter a (part of a) CategoryName", 30);
+				selId = 0;
+				listBorrowers(swIdName, selName, selId);
 				break;
 			case "5":
 				addBorrower();
@@ -41,38 +66,6 @@ public class Borrower {
 		} while (!selection.contentEquals("X"));
 		;
 
-	}
-
-	public static void printTitle() {
-		System.out.println(String.format("%11s", "Id") + " " + String.format("%-40s", "BorrowerName") + " "
-				+ String.format("%-30s", "Street") + " " + String.format("%-5s", "Nmbr") + " "
-				+ String.format("%-5s", "Bus") + " " + String.format("%-11s", "Postcode") + " "
-				+ String.format("%-30s", "City") + " " + String.format("%-10s", "telephone") + " "
-				+ String.format("%-40s", "eMail"));
-		System.out.println(
-				"----------------------------------------------------------------------------------------------------"
-						+ "-------------------------------------------------------------------------");
-	}
-
-	public static void printDetail(Integer Id, String borrower_name, String street, String house_number,
-			String bus_number, Integer postcode, String city, String telephone, String eMail) {
-		System.out.println(String.format("%11d", Id) + " " + String.format("%-40s", borrower_name) + " "
-				+ String.format("%-30s", street) + " " + String.format("%-5s", house_number) + " "
-				+ String.format("%-5s", bus_number) + " " + String.format("%-11d", postcode) + " "
-				+ String.format("%-30s", city) + " " + String.format("%-10s", telephone) + " "
-				+ String.format("%-40s", eMail));
-	}
-
-	public static String menuBorrower() {
-		System.out.println();
-		System.out.println("1: Show all Borrowers ordered by ID");
-		System.out.println("2: Show all Borrowers ordered by Name");
-		System.out.println("3: Show Borrower by ID");
-		System.out.println("4: Show Borrower by Name");
-		System.out.println("5: Add Borrower");
-		System.out.println("6: Delete Borrower");
-		System.out.println("X: Return to Main Menu");
-		return new MyScanner().receiveString("Please enter your selection", 1);
 	}
 
 	public static Double askDouble(String question, Double maxValue) {
@@ -160,29 +153,54 @@ public class Borrower {
 		}
 	}
 
-	public static void listBorrowers(String orderBy) {
+	public static void listBorrowers(String swIdName, String selName, Integer selId) {
 		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			PreparedStatement statement;
-			if (orderBy.contentEquals("ID"))
-				statement = connection.prepareStatement(
-						"select id,borrower_name,street,house_number,bus_number,postcode,city,telephone,email from Borrower order by id");
-			else
+
+			if (swIdName.contentEquals("ID"))
+				if (selId == 0)
+					statement = connection.prepareStatement(
+							"select id,borrower_name,street,house_number,bus_number,postcode,city,telephone,email from Borrower order by id");
+				else {
+					statement = connection.prepareStatement(
+							"select id,borrower_name,street,house_number,bus_number,postcode,city,telephone,email from Borrower where id = ?");
+					statement.setInt(1, selId);
+				}
+			else if (selName.contentEquals("*"))
 				statement = connection.prepareStatement(
 						"select id,borrower_name,street,house_number,bus_number,postcode,city,telephone,email from Borrower order by borrower_name");
+			else {
+				statement = connection.prepareStatement(
+						"select id,borrower_name,street,house_number,bus_number,postcode,city,telephone,email from Borrower where borrower_name like ? order by borrower_name");
+				statement.setString(1, "%" + selName + "%");
+			}
+
 			ResultSet resultSet = statement.executeQuery();
 
 			while (resultSet.next()) {
 				if (SwTitle == false) {
-					printTitle();
+					System.out.println(String.format("%11s", "Id") + " " + String.format("%-40s", "BorrowerName") + " "
+							+ String.format("%-30s", "Street") + " " + String.format("%-5s", "Nmbr") + " "
+							+ String.format("%-5s", "Bus") + " " + String.format("%-11s", "Postcode") + " "
+							+ String.format("%-30s", "City") + " " + String.format("%-10s", "telephone") + " "
+							+ String.format("%-40s", "eMail"));
+					System.out.println(
+							"----------------------------------------------------------------------------------------------------"
+									+ "-------------------------------------------------------------------------");
 					SwTitle = true;
 				}
-				printDetail(resultSet.getInt("Id"), resultSet.getString("borrower_name"), resultSet.getString("street"),
-						resultSet.getString("house_number"), resultSet.getString("bus_number"),
-						resultSet.getInt("postcode"), resultSet.getString("city"), resultSet.getString("telephone"),
-						resultSet.getString("email"));
+				System.out.println(String.format("%11d", resultSet.getInt("Id")) + " "
+						+ String.format("%-40s", resultSet.getString("borrower_name")) + " "
+						+ String.format("%-30s", resultSet.getString("street")) + " "
+						+ String.format("%-5s", resultSet.getString("house_number")) + " "
+						+ String.format("%-5s", resultSet.getString("bus_number")) + " "
+						+ String.format("%-11d", resultSet.getInt("postcode")) + " "
+						+ String.format("%-30s", resultSet.getString("city")) + " "
+						+ String.format("%-10s", resultSet.getString("telephone")) + " "
+						+ String.format("%-40s", resultSet.getString("email")));
 				;
 			}
 			if (SwTitle == false)
@@ -193,70 +211,4 @@ public class Borrower {
 			e.printStackTrace();
 		}
 	}
-
-	public static void listBorrowerById() {
-		Integer Id = askInt("Please enter an Id", 99999999);
-		Boolean SwTitle = false;
-		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
-//			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			PreparedStatement statement;
-			statement = connection.prepareStatement(
-					"select id,borrower_name,street,house_number,bus_number,postcode,city,telephone,email from Borrower where id = ?");
-			statement.setInt(1, Id);
-			ResultSet resultSet = statement.executeQuery();
-
-			while (resultSet.next()) {
-				if (SwTitle == false) {
-					printTitle();
-					SwTitle = true;
-				}
-				printDetail(resultSet.getInt("Id"), resultSet.getString("borrower_name"), resultSet.getString("street"),
-						resultSet.getString("house_number"), resultSet.getString("bus_number"),
-						resultSet.getInt("postcode"), resultSet.getString("city"), resultSet.getString("telephone"),
-						resultSet.getString("email"));
-				;
-			}
-			if (SwTitle == false)
-				System.out.println("Borrower-id(" + Id + ") does not exist");
-
-		} catch (SQLException |
-
-				ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void listBorrowerByName() {
-		String BorrowerName = askString("Please enter a (part of a) BorrowerName", 30);
-		Boolean SwTitle = false;
-		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
-//			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			PreparedStatement statement;
-			statement = connection.prepareStatement(
-					"select id,borrower_name,street,house_number,bus_number,postcode,city,telephone,email  from Borrower where Borrower_name like ?");
-			statement.setString(1, "%" + BorrowerName + "%");
-			ResultSet resultSet = statement.executeQuery();
-
-			while (resultSet.next()) {
-				if (SwTitle == false) {
-					printTitle();
-					SwTitle = true;
-				}
-				printDetail(resultSet.getInt("Id"), resultSet.getString("borrower_name"), resultSet.getString("street"),
-						resultSet.getString("house_number"), resultSet.getString("bus_number"),
-						resultSet.getInt("postcode"), resultSet.getString("city"), resultSet.getString("telephone"),
-						resultSet.getString("email"));
-				;
-			}
-			if (SwTitle == false)
-				System.out.println("Borrower with name (" + BorrowerName + ") does not exist");
-		} catch (SQLException |
-
-				ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
-
 }

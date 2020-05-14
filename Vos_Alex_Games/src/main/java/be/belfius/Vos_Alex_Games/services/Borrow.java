@@ -10,14 +10,28 @@ import java.util.Date;
 
 public class Borrow {
 
+	public static Integer selId;
 	public static String selection;
+
+	public static String menuBorrow() {
+		System.out.println();
+		System.out.println("1: Show all Borrows");
+		System.out.println("2: Show all borrowed games");
+		System.out.println("3: Show all borrowed games of 1 borrower");
+		System.out.println("4: Show Borrow by ID");
+		System.out.println("5: Add Borrow");
+		System.out.println("6: Delete Borrow");
+		System.out.println("X: Return to Main Menu");
+		return new MyScanner().receiveString("Please enter your selection", 1);
+	}
 
 	public static void borrowMenu() {
 		do {
 			selection = menuBorrow().toUpperCase();
 			switch (selection) {
 			case "1":
-				listBorrows();
+				selId = 0;
+				listBorrows(selId);
 				break;
 			case "2":
 				listBorrowedGames("*");
@@ -26,7 +40,8 @@ public class Borrow {
 				listBorrowedGames("Borrower");
 				break;
 			case "4":
-				listBorrowById();
+				selId = askInt("Please enter an Id", 99999999);
+				listBorrows(selId);
 				break;
 			case "5":
 				addBorrow();
@@ -43,39 +58,6 @@ public class Borrow {
 		} while (!selection.contentEquals("X"));
 		;
 
-	}
-
-	public static void printTitle() {
-		System.out.println(String.format("%11s", "Id") + " " + String.format("%11s", "GameId") + " "
-				+ String.format("%11s", "BorrowerId") + " " + String.format("%10s", "BorrowDate") + " "
-				+ String.format("%10s", "ReturnDate"));
-		System.out.println("-----------------------------------------------------");
-	}
-
-	public static void printDetail(Integer Id, Integer gameId, Integer borrowerId, Date borrowDate, Date returnDate) {
-		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-		String formattedReturnDate = "";
-
-		if (returnDate == null)
-			formattedReturnDate = "";
-		else
-			formattedReturnDate = formatter.format(returnDate);
-
-		System.out.println(String.format("%11d", Id) + " " + String.format("%11d", gameId) + " "
-				+ String.format("%11d", borrowerId) + " " + String.format("%10s", formatter.format(borrowDate)) + " "
-				+ String.format("%10s", formattedReturnDate));
-	}
-
-	public static String menuBorrow() {
-		System.out.println();
-		System.out.println("1: Show all Borrows");
-		System.out.println("2: Show all borrowed games");
-		System.out.println("3: Show all borrowed games of 1 borrower");
-		System.out.println("4: Show Borrow by ID");
-		System.out.println("5: Add Borrow");
-		System.out.println("6: Delete Borrow");
-		System.out.println("X: Return to Main Menu");
-		return new MyScanner().receiveString("Please enter your selection", 1);
 	}
 
 	public static Double askDouble(String question, Double maxValue) {
@@ -175,7 +157,7 @@ public class Borrow {
 							+ "order by borrower_name, borrow_date;");
 			if (borrowerSelection.contentEquals("Borrower")) {
 				System.out.println("Overview of all Borrowers : ");
-				Borrower.listBorrowers("ID");
+				Borrower.listBorrowers("ID", "", 0);
 				Integer Id = askInt("Please enter an Id", 99999999);
 				statement = connection.prepareStatement(
 						"SELECT game_name, borrower_name , borrow_date, return_date FROM games.borrow, games.game, games.borrower "
@@ -193,11 +175,25 @@ public class Borrow {
 
 			while (resultSet.next()) {
 				if (SwTitle == false) {
-					printTitleBorrowedGames();
+					System.out.println(String.format("%-50s", "GameName") + " " + String.format("%-40s", "BorrowerName")
+							+ " " + String.format("%10s", "BorrowDate") + " " + String.format("%10s", "ReturnDate"));
+					System.out.println(
+							"----------------------------------------------------------------------------------------------------"
+									+ "-------------");
 					SwTitle = true;
 				}
-				printDetailBorrowedGames(resultSet.getString("game_name"), resultSet.getString("borrower_name"),
-						resultSet.getDate("borrow_date"), resultSet.getDate("return_date"));
+				SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+				String formattedReturnDate = "";
+
+				if (resultSet.getDate("return_date") == null)
+					formattedReturnDate = "";
+				else
+					formattedReturnDate = formatter.format(resultSet.getDate("return_date"));
+
+				System.out.println(String.format("%-50s", resultSet.getString("game_name")) + " "
+						+ String.format("%-40s", resultSet.getString("borrower_name")) + " "
+						+ String.format("%10s", formatter.format(resultSet.getDate("borrow_date"))) + " "
+						+ String.format("%10s", formattedReturnDate));
 				;
 			}
 			if (SwTitle == false)
@@ -209,46 +205,45 @@ public class Borrow {
 		}
 	}
 
-	public static void printTitleBorrowedGames() {
-		System.out.println(String.format("%-50s", "GameName") + " " + String.format("%-40s", "BorrowerName") + " "
-				+ String.format("%10s", "BorrowDate") + " " + String.format("%10s", "ReturnDate"));
-		System.out.println(
-				"----------------------------------------------------------------------------------------------------"
-						+ "-------------");
-	}
-
-	public static void printDetailBorrowedGames(String gameName, String borrowerName, Date borrowDate,
-			Date returnDate) {
-		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-		String formattedReturnDate = "";
-
-		if (returnDate == null)
-			formattedReturnDate = "";
-		else
-			formattedReturnDate = formatter.format(returnDate);
-
-		System.out.println(String.format("%-50s", gameName) + " " + String.format("%-40s", borrowerName) + " "
-				+ String.format("%10s", formatter.format(borrowDate)) + " "
-				+ String.format("%10s", formattedReturnDate));
-	}
-
-	public static void listBorrows() {
+	public static void listBorrows(Integer selId) {
 		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			PreparedStatement statement;
-			statement = connection.prepareStatement(
-					"select id, game_id, borrower_id, borrow_date, return_date from Borrow order by id");
+			if (selId == 0)
+				statement = connection.prepareStatement(
+						"select id, game_id, borrower_id, borrow_date, return_date from Borrow order by id");
+			else {
+				statement = connection.prepareStatement(
+						"select id, game_id, borrower_id, borrow_date, return_date from Borrow where id = ?");
+				statement.setInt(1, selId);
+			}
+
 			ResultSet resultSet = statement.executeQuery();
 
 			while (resultSet.next()) {
 				if (SwTitle == false) {
-					printTitle();
+					System.out.println(String.format("%11s", "Id") + " " + String.format("%11s", "GameId") + " "
+							+ String.format("%11s", "BorrowerId") + " " + String.format("%10s", "BorrowDate") + " "
+							+ String.format("%10s", "ReturnDate"));
+					System.out.println("-----------------------------------------------------");
 					SwTitle = true;
 				}
-				printDetail(resultSet.getInt("id"), resultSet.getInt("game_id"), resultSet.getInt("borrower_id"),
-						resultSet.getDate("Borrow_date"), resultSet.getDate("return_date"));
+
+				SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+				String formattedReturnDate = "";
+
+				if (resultSet.getDate("return_date") == null)
+					formattedReturnDate = "";
+				else
+					formattedReturnDate = formatter.format(resultSet.getDate("return_date"));
+
+				System.out.println(String.format("%11d", resultSet.getInt("id")) + " "
+						+ String.format("%11d", resultSet.getInt("game_id")) + " "
+						+ String.format("%11d", resultSet.getInt("borrower_id")) + " "
+						+ String.format("%10s", formatter.format(resultSet.getDate("Borrow_date"))) + " "
+						+ String.format("%10s", formattedReturnDate));
 				;
 			}
 			if (SwTitle == false)
@@ -260,33 +255,4 @@ public class Borrow {
 		}
 	}
 
-	public static void listBorrowById() {
-		Integer Id = askInt("Please enter an Id", 99999999);
-		Boolean SwTitle = false;
-		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
-//			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			PreparedStatement statement;
-			statement = connection.prepareStatement(
-					"select id, game_id, borrower_id, borrow_date, return_date from Borrow where id = ?");
-			statement.setInt(1, Id);
-			ResultSet resultSet = statement.executeQuery();
-
-			while (resultSet.next()) {
-				if (SwTitle == false) {
-					printTitle();
-					SwTitle = true;
-				}
-				printDetail(resultSet.getInt("id"), resultSet.getInt("game_id"), resultSet.getInt("borrower_id"),
-						resultSet.getDate("Borrow_date"), resultSet.getDate("return_date"));
-				;
-			}
-			if (SwTitle == false)
-				System.out.println("Borrow" + "-id(" + Id + ") does not exist");
-		} catch (SQLException |
-
-				ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
 }
