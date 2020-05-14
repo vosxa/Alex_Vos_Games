@@ -68,7 +68,7 @@ public class Game {
 	}
 
 	public static void printTitle() {
-		System.out.println(String.format("%-11s", "Id") + " " + String.format("%-50s", "GameName") + " "
+		System.out.println(String.format("%11s", "Id") + " " + String.format("%-50s", "GameName") + " "
 				+ String.format("%-50s", "Editor") + " " + String.format("%-40s", "Author") + " "
 				+ String.format("%-11s", "YearEdition") + " " + String.format("%-20s", "Age") + " "
 				+ String.format("%11s", "MinPlayers") + " " + String.format("%11s", "MaxPlayers") + " "

@@ -63,6 +63,15 @@ public class Category {
 		return new MyScanner().receiveString(question, maxLength);
 	}
 
+	public static void printTitle() {
+		System.out.println(String.format("%11s", "Id") + " " + String.format("%-30s", "CategoryName"));
+		System.out.println("-----------------------------------------");
+	}
+
+	public static void printDetail(Integer Id, String category_name) {
+		System.out.println(String.format("%11d", Id) + " " + String.format("%-30s", category_name));
+
+	}
 	public static void addCategory() {
 		String CategoryName = askString("Please enter a CategoryName", 30);
 		Integer Count = 0;
@@ -134,11 +143,11 @@ public class Category {
 
 			while (resultSet.next()) {
 				if (SwTitle == false) {
-					System.out.println("Id  Category Name");
-					System.out.println("-----------------");
+					printTitle();
 					SwTitle = true;
 				}
-				System.out.println(resultSet.getInt("Id") + " " + resultSet.getString("category_name"));
+				
+				printDetail(resultSet.getInt("Id"), resultSet.getString("category_name"));
 			}
 			if (SwTitle == false)
 				System.out.println("Category-table is empty");
@@ -162,11 +171,10 @@ public class Category {
 
 			while (resultSet.next()) {
 				if (SwTitle == false) {
-					System.out.println("Id  Category Name");
-					System.out.println("-----------------");
+					printTitle();
 					SwTitle = true;
 				}
-				System.out.println(resultSet.getInt("Id") + " " + resultSet.getString("category_name"));
+				printDetail(resultSet.getInt("Id"), resultSet.getString("category_name"));
 			}
 			if (SwTitle == false)
 				System.out.println("Category-id(" + Id + ") does not exist");
@@ -192,11 +200,11 @@ public class Category {
 
 			while (resultSet.next()) {
 				if (SwTitle == false) {
-					System.out.println("Id  Category Name");
-					System.out.println("-----------------");
+					printTitle();
 					SwTitle = true;
 				}
-				System.out.println(resultSet.getInt("Id") + " " + resultSet.getString("category_name"));
+				printDetail(resultSet.getInt("Id"), resultSet.getString("category_name"));
+
 			}
 			if (SwTitle == false)
 				System.out.println("Category with name (" + CategoryName + ") does not exist");
