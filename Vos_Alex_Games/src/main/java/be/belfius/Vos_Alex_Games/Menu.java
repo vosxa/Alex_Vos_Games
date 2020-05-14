@@ -1,5 +1,7 @@
 package be.belfius.Vos_Alex_Games;
 
+import java.text.ParseException;
+
 import be.belfius.Vos_Alex_Games.services.MyScanner;
 
 public class Menu {

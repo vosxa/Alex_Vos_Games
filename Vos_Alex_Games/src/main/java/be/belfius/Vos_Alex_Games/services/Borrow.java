@@ -5,27 +5,31 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 public class Borrow {
 
+	public static Date selDate;
 	public static Integer selId;
-	public static String selection;
+	public static String selection, selString;
 
 	public static String menuBorrow() {
 		System.out.println();
 		System.out.println("1: Show all Borrows");
-		System.out.println("2: Show all borrowed games");
-		System.out.println("3: Show all borrowed games of 1 borrower");
-		System.out.println("4: Show Borrow by ID");
-		System.out.println("5: Add Borrow");
-		System.out.println("6: Delete Borrow");
+		System.out.println("2: Show Borrow by ID");
+		System.out.println("3: Show all borrowed games");
+		System.out.println("4: Show all borrowed games of 1 borrower");
+		System.out.println("5: Show all borrowed games after a specific date");
+		System.out.println("6: Add Borrow");
+		System.out.println("7: Delete Borrow");
 		System.out.println("X: Return to Main Menu");
 		return new MyScanner().receiveString("Please enter your selection", 1);
 	}
 
-	public static void borrowMenu() {
+	public static void borrowMenu() /* throws ParseException */ {
 		do {
 			selection = menuBorrow().toUpperCase();
 			switch (selection) {
@@ -34,19 +38,25 @@ public class Borrow {
 				listBorrows(selId);
 				break;
 			case "2":
-				listBorrowedGames("*");
-				break;
-			case "3":
-				listBorrowedGames("Borrower");
-				break;
-			case "4":
 				selId = askInt("Please enter an Id", 99999999);
 				listBorrows(selId);
 				break;
+			case "3":
+				selString = "";
+				listBorrowedGames("*", selString);
+				break;
+			case "4":
+				selString = "";
+				listBorrowedGames("Borrower", selString);
+				break;
 			case "5":
-				addBorrow();
+				selString = askString("Please enter date as DD-MM-YYYY", 10);
+				listBorrowedGames("Date", selString);
 				break;
 			case "6":
+				addBorrow();
+				break;
+			case "7":
 				deleteBorrow();
 				break;
 			case "X":
@@ -145,7 +155,7 @@ public class Borrow {
 		}
 	}
 
-	public static void listBorrowedGames(String borrowerSelection) {
+	public static void listBorrowedGames(String borrowerSelection, String selString) {
 		Boolean SwTitle = false;
 		try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/games", "root", "");) {
 //			Connection connection = DriverManager.getConnection(Helper.loadPropertiesFile().getProperty("db.url"), "root", "root");
@@ -165,6 +175,12 @@ public class Borrow {
 								+ "order by borrower_name, borrow_date");
 				statement.setInt(1, Id);
 
+			} else if (borrowerSelection.contentEquals("Date")) {
+				statement = connection.prepareStatement(
+						"SELECT game_name, borrower_name , borrow_date, return_date FROM games.borrow, games.game, games.borrower "
+								+ "where borrow.game_id = game.id and borrow.borrower_id = borrower.id  and borrow_date > ? "
+								+ "order by borrower_name, borrow_date");
+				statement.setString(1, selString);
 			} else
 				statement = connection.prepareStatement(
 						"SELECT game_name, borrower_name , borrow_date, return_date FROM games.borrow, games.game, games.borrower "
