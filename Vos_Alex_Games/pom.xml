@@ -19,18 +19,149 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.20</version>
 		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.8</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.dbunit</groupId>
+			<artifactId>dbunit</artifactId>
+			<version>2.7.0</version>
+			<scope>test</scope>
+		</dependency>
+
 
 	</dependencies>
+	    <build>
+        <filters>
+            <filter>src/main/resources/${env}.properties</filter>
+        </filters>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.21.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>maven_demo.MyApplication</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.7</version>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>realdolmen</id>
+            <activation>
+                <!-- this profile is active by default -->
+                <activeByDefault>true</activeByDefault>
+                <!-- activate if system properties 'env=realdolmen' -->
+                <property>
+                    <name>env</name>
+                    <value>config</value>
+                </property>
+            </activation>
+            <properties>
+                <env>development</env>
+                <file.pathurl>TRAINER/src/main/resources/img/realdolmen.jpg</file.pathurl>
+                <db.driver>com.mysql.cj.jdbc.Driver</db.driver>
+                <db.url>jdbc:mysql://localhost:3306/zoo</db.url>
+                <db.username>root</db.username>
+                <db.password>P@ssw0rd</db.password>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>belfius</id>
+            <activation>
+                <!-- activate if system properties 'env=belfius' -->
+                <property>
+                    <name>env</name>
+                    <value>config</value>
+                </property>
+            </activation>
+            <properties>
+                <env>development</env>
+                <file.pathurl>TRAINER/src/main/resources/img/belfius2.png</file.pathurl>
+                <db.driver>com.mysql.cj.jdbc.Driver</db.driver>
+                <db.url>jdbc:mysql://localhost:3306/zoo</db.url>
+                <db.username>root</db.username>
+                <db.password></db.password>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>test</id>
+            <activation>
+                <!-- activate if system properties 'env=belfius' -->
+                <property>
+                    <name>env</name>
+                    <value>config</value>
+                </property>
+            </activation>
+            <properties>
+                <env>test</env>
+                <file.pathurl>TRAINER/src/main/resources/img/belfius2.png</file.pathurl>
+                <db.driver>org.h2.Driver</db.driver>
+                <db.url>jdbc:h2:mem:zoo;INIT=RUNSCRIPT FROM './data.sql'</db.url>
+                <db.username>root</db.username>
+                <db.password></db.password>
+            </properties>
+        </profile>
+    </profiles>
+	
 </project>

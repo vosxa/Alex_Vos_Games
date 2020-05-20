@@ -30,7 +30,7 @@ public class Difficulty {
 			selection = menudifficulty().toUpperCase();
 			switch (selection) {
 			case "1":
-				selId = 99999999;
+				selId = 0;
 				listDifficulties(selId);
 				break;
 			case "2":
@@ -190,14 +190,23 @@ public class Difficulty {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 			PreparedStatement statement;
 			if (selId == 0)
-				statement = connection
-						.prepareStatement("SELECT game_name, difficulty_name FROM games.game, games.difficulty "
-								+ "where game.difficulty_id = difficulty.id " + "order by difficulty_id, game_name");
+/*				statement = connection.prepareStatement("SELECT game_name, CASE when difficulty_id is null then " + '"' + "undefined" + '"' + " else difficulty_name END" 
+						+ " FROM games.game left join games.difficulty " 
+						+ " on game.difficulty_id = difficulty.id " 
+						+ " order by CASE when difficulty_id is null then " + '"' + "undefined" + '"' + " else difficulty_name END, game_name"
+						);*/
+				statement = connection.prepareStatement("SELECT game_name, difficulty_name " + 
+						"FROM games.game, games.difficulty " + 
+						"where game.difficulty_id = difficulty.id " + 
+						"union all " + 
+						"SELECT game_name, " + '"' + "undefined" + '"' + " " + 
+						"FROM games.game " + 
+						"where game.difficulty_id is null " +
+						"order by difficulty_name, game_name");
 			else {
-				statement = connection
-						.prepareStatement("SELECT game_name, difficulty_name FROM games.game, games.difficulty "
-								+ "where game.difficulty_id = difficulty.id " + "and game.difficulty_id = ? "
-								+ "order by difficulty_id, game_name");
+				statement = connection.prepareStatement("SELECT game_name, difficulty_name "
+						+ "FROM games.game, games.difficulty where game.difficulty_id = difficulty.id "
+						+ "and game.difficulty_id = ? order by difficulty_name, game_name");
 				statement.setInt(1, selId);
 			}
 			ResultSet resultSet = statement.executeQuery();
@@ -212,9 +221,7 @@ public class Difficulty {
 			}
 			if (SwTitle == false)
 				System.out.println("difficulty-table is empty");
-		} catch (SQLException |
-
-				ClassNotFoundException e) {
+		} catch (SQLException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
